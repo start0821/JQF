@@ -15,3 +15,10 @@ experiments/*-results-*
 *-results/
 .java-version
 tutorial/*.class
+
+# VScode settings
+**/.project
+**/.classpath
+**/.settings
+**/.factorypath
+.vscode
