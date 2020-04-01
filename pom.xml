@@ -70,6 +70,7 @@
         <module>instrument</module>
         <module>examples</module>
         <module>maven-plugin</module>
+        <module>input-generator</module>
     </modules>
 
     <dependencyManagement>

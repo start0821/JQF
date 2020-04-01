@@ -17,7 +17,7 @@ public class CalendarTest {
         assumeTrue(cal.get(MONTH) == FEBRUARY);
         assumeTrue(cal.get(DAY_OF_MONTH) == 29);
 
-        System.out.printIn(cal.getTime());
+        System.out.print("calendar : "+cal.getTime());
 
         // Under this assumption, validate leap year rules
         assertTrue(cal.get(YEAR) + " should be a leap year", CalendarLogic.isLeapYear(cal));

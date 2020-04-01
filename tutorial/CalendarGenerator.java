@@ -4,7 +4,7 @@ import java.util.TimeZone;
 import com.pholser.junit.quickcheck.generator.GenerationStatus;
 import com.pholser.junit.quickcheck.generator.Generator;
 import com.pholser.junit.quickcheck.random.SourceOfRandomness;
-
+import edu.berkeley.cs.jqf.fuzz.junit.quickcheck.FuzzStatement;
 import static java.util.GregorianCalendar.*;
 
 public class CalendarGenerator extends Generator<GregorianCalendar> {

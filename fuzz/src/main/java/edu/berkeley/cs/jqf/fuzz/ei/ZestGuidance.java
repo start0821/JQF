@@ -1118,7 +1118,7 @@ public class ZestGuidance implements Guidance {
         }
 
         @Override
-        public Input fuzz(Random random) {
+        public Input fuzz(Random random) { //TAESU : configure change?(grammar에 대해 추가하지 않기 때문.) and maybe generator will use that configure file.
             // Clone this input to create initial version of new child
             LinearInput newInput = new LinearInput(this);
 
