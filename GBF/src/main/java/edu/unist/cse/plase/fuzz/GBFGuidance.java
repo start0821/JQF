@@ -401,7 +401,7 @@ public class GBFGuidance extends GA implements Guidance{
 
     @Override
     public ObjChromosome generate_parent(int length){
-
+        
     }
 
     @Override
@@ -409,6 +409,8 @@ public class GBFGuidance extends GA implements Guidance{
         List<String> cmdList = new ArrayList<String>();
         cmdList.add(this.programLocation);
         cmdList.add(gene.genes.toString());
+        // positive value means error;
+        Integer result = new Integer(Integer.MIN_VALUE);
 
         try{
             // 명령어 실행
@@ -430,22 +432,26 @@ public class GBFGuidance extends GA implements Guidance{
             // 프로세스의 수행이 끝날때까지 대기
             process.waitFor();
 
-            // shell 실행이 정상 종료되었을 경우
-            if (process.exitValue() == 0) {
-                System.out.println("성공");
-                System.out.println(successOutput.toString());
-                System.out.println(errorOutput.toString());
-            } else {
-                // shell 실행이 비정상 종료되었을 경우
-                System.out.println("비정상 종료");
-                System.out.println(successOutput.toString());
-            }
+            // // shell 실행이 정상 종료되었을 경우
+            // if (process.exitValue() == 0) {
+            //     System.out.println("성공");
+            //     System.out.println(successOutput.toString());
+            //     System.out.println(errorOutput.toString());
+            // } else {
+            //     // shell 실행이 비정상 종료되었을 경우
+            //     System.out.println("비정상 종료");
+            //     System.out.println(successOutput.toString());
+            // }
 
             // shell 실행시 에러가 발생
             if (errorOutput.toString()=="") {
                 // shell 실행이 비정상 종료되었을 경우
-                System.out.println("오류");
-                System.out.println(successOutput.toString());
+                // System.out.println("오류");
+                // System.out.println(successOutput.toString());
+
+                // positive value means that it's not bood argument
+            }else{
+                result = Integer(-Integer.parseInt(successOutput.toString()));
             }
 
         } catch (IOException e) {
@@ -463,6 +469,8 @@ public class GBFGuidance extends GA implements Guidance{
                 e1.printStackTrace();
             }
         }
+
+        return result;
 
     }
 
