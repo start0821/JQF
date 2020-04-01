@@ -552,6 +552,7 @@ public class ZestGuidance implements Guidance {
     public InputStream getInput() throws GuidanceException {
         // Clear coverage stats for this run
         runCoverage.clear();
+        System.out.print("savedInput is empty\n");
 
         // Choose an input to execute based on state of queues
         if (!seedInputs.isEmpty()) {
@@ -566,6 +567,7 @@ public class ZestGuidance implements Guidance {
                 throw new GuidanceException("Too many trials without coverage; " +
                         "likely all assumption violations");
             }
+            System.out.print("savedInput is empty\n");
 
             // Make fresh input using either list or maps
             // infoLog("Spawning new input from thin air");

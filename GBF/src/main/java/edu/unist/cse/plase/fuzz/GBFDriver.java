@@ -1,17 +1,29 @@
 package edu.unist.cse.plase.fuzz;
 
-import java.util.Random;
-import java.lang.reflect.Method;
-import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 import java.lang.ClassLoader;
+import java.lang.InterruptedException;
+import java.lang.Math;
+import java.lang.StringBuffer;
+import java.lang.reflect.Method;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 import com.pholser.junit.quickcheck.generator.GenerationStatus;
 import com.pholser.junit.quickcheck.random.SourceOfRandomness;
 
 import edu.berkeley.cs.jqf.fuzz.guidance.StreamBackedRandom;
-import edu.berkeley.cs.jqf.fuzz.junit.quickcheck.NonTrackingGenerationStatus;
 import edu.berkeley.cs.jqf.fuzz.junit.quickcheck.FastSourceOfRandomness;
-import edu.berkeley.cs.jqf.fuzz.ei.ZestGuidance;
+import edu.berkeley.cs.jqf.fuzz.junit.quickcheck.NonTrackingGenerationStatus;
+
+import org.apache.commons.lang3.exception.ExceptionUtils;
+
+import edu.unist.cse.plase.fuzz.GBFGuidance;
 
 /**
  * custom generator and get return value.
@@ -19,37 +31,46 @@ import edu.berkeley.cs.jqf.fuzz.ei.ZestGuidance;
  */
 public class GBFDriver 
 {
+
+
     public static void main( String[] args )
     {
         String generatorClassName  = args[1];
+        String programLocation  = args[2];
 
         try{
-            System.out.print(generatorClassName+"\n");
+            Scanner input = new Scanner(new File(programLocation));
 
             Class<?> generatorClass =
                 java.lang.Class.forName(generatorClassName, true, ClassLoader.getSystemClassLoader());
-            String outputDirectoryName = args.length > 2 ? args[2] : "fuzz-results";
+            String outputDirectoryName = args.length > 3 ? args[3] : "fuzz-results";
             File outputDirectory = new File(outputDirectoryName);
     
-            ZestGuidance guidance = new ZestGuidance(generatorClassName,null,outputDirectory);
-    
-            // GBFGuidance guidance = new GBFGuidance();
-            StreamBackedRandom randomFile = new StreamBackedRandom(guidance.getInput(), Long.BYTES);
-            SourceOfRandomness random = new FastSourceOfRandomness(randomFile);
-            GenerationStatus genStatus = new NonTrackingGenerationStatus(random);
-    
             Method method = generatorClass.getMethod("generate",SourceOfRandomness.class,GenerationStatus.class);
+            Object o = generatorClass.newInstance();
             
+            GBFGuidance guidance = new GBFGuidance(generatorClassName,null,outputDirectory,method,o,programLocation);
+    
             for(int i=0;i<10;i++){
-                Object o = generatorClass.newInstance();
+
+                StreamBackedRandom randomFile = new StreamBackedRandom(guidance.getInput(), Long.BYTES);
+                SourceOfRandomness random = new FastSourceOfRandomness(randomFile);
+                GenerationStatus genStatus = new NonTrackingGenerationStatus(random);
                 Object value = method.invoke(o,random,genStatus);
-                System.out.print(value.toString()+"\n");
+                List<String> cmdList = new ArrayList<String>();
+                cmdList.add(programLocation);
+                cmdList.add(Integer.toString((int)(Math.random()*100)));
+                cmdList.add(value.toString());
+                String[] array = cmdList.toArray(new String[cmdList.size()]);
+                
+        
             }
         
 
 
 
         } catch (Throwable e){
+            ExceptionUtils.getStackTrace(e);
 
         }
 
