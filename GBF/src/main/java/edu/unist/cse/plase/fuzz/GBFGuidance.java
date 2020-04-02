@@ -75,6 +75,8 @@ import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
 import edu.unist.cse.plase.fuzz.genetic.GA;
 import edu.unist.cse.plase.fuzz.genetic.GA.ExtendedChromosome;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+
 import static java.lang.Math.ceil;
 import static java.lang.Math.log;
 
@@ -1329,8 +1331,6 @@ public class GBFGuidance implements Guidance{
                 e.printStackTrace();
             } catch (InterruptedException e) {
                 e.printStackTrace();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
             } finally {
                 try {
                     process.destroy();
@@ -1346,7 +1346,7 @@ public class GBFGuidance implements Guidance{
 
         @Override
         public ExtendedChromosome mutate(ExtendedChromosome parent){
-            ExtendedChromosome child = GA.ExtendedChromosome((LinearInput)parent.genes.fuzz(GBFGuidance.this.random),0,0);
+            ExtendedChromosome child = new ExtendedChromosome((LinearInput)parent.genes.fuzz(GBFGuidance.this.random),0,0);
             
             child.generatedInput = getGeneratedInput(child);
             child.fitness = get_fitness(child);
@@ -1359,7 +1359,12 @@ public class GBFGuidance implements Guidance{
             randomFile = new StreamBackedRandom(createParameterStream(ech.genes), Long.BYTES);
             random = new FastSourceOfRandomness(randomFile);
             genStatus = new NonTrackingGenerationStatus(random);
-            Object result = GBFGuidance.this.generator_method.invoke(GBFGuidance.this.generator_instance,random,genStatus);
+            Object result = new Object();
+            try{
+                result = GBFGuidance.this.generator_method.invoke(GBFGuidance.this.generator_instance,random,genStatus);
+            }catch (Throwable e){
+                ExceptionUtils.getStackTrace(e);
+            }
 
             // remove LinearInput that is not used for input generation.
             ech.genes.gc();
