@@ -36,6 +36,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -82,7 +83,7 @@ import static java.lang.Math.log;
  *
  * @author Rohan Padhye
  */
-public class GBFGuidance extends GA implements Guidance{
+public class GBFGuidance implements Guidance{
 
     // Currently, we only support single-threaded applications
     // This field is used to ensure that
@@ -399,90 +400,97 @@ public class GBFGuidance extends GA implements Guidance{
 
     }
 
-    @Override
-    public ObjChromosome generate_parent(int length){
-        
-    }
+    public class extendedGA extends GA<LinearInput>{
 
-    @Override
-    public Integer get_fitness(ObjChromosome gene){
-        List<String> cmdList = new ArrayList<String>();
-        cmdList.add(this.programLocation);
-        cmdList.add(gene.genes.toString());
-        // positive value means error;
-        Integer result = new Integer(Integer.MIN_VALUE);
-
-        try{
-            // 명령어 실행
-            process = runtime.exec(array);
-
-            // shell 실행이 정상 동작했을 경우
-            successBufferReader = new BufferedReader(new InputStreamReader(process.getInputStream(), "EUC-KR"));
-
-            while ((msg = successBufferReader.readLine()) != null) {
-                successOutput.append(msg + System.getProperty("line.separator"));
-            }
-
-            // shell 실행시 에러가 발생했을 경우
-            errorBufferReader = new BufferedReader(new InputStreamReader(process.getErrorStream(), "EUC-KR"));
-            while ((msg = errorBufferReader.readLine()) != null) {
-                errorOutput.append(msg + System.getProperty("line.separator"));
-            }
-
-            // 프로세스의 수행이 끝날때까지 대기
-            process.waitFor();
-
-            // // shell 실행이 정상 종료되었을 경우
-            // if (process.exitValue() == 0) {
-            //     System.out.println("성공");
-            //     System.out.println(successOutput.toString());
-            //     System.out.println(errorOutput.toString());
-            // } else {
-            //     // shell 실행이 비정상 종료되었을 경우
-            //     System.out.println("비정상 종료");
-            //     System.out.println(successOutput.toString());
-            // }
-
-            // shell 실행시 에러가 발생
-            if (errorOutput.toString()=="") {
-                // shell 실행이 비정상 종료되었을 경우
-                // System.out.println("오류");
-                // System.out.println(successOutput.toString());
-
-                // positive value means that it's not bood argument
-            }else{
-                result = Integer(-Integer.parseInt(successOutput.toString()));
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                process.destroy();
-                if (successBufferReader != null) successBufferReader.close();
-                if (errorBufferReader != null) errorBufferReader.close();
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
+        @Override
+        public ExtendedChromosome generate_parent(int length){
+            
         }
 
-        return result;
+        @Override
+        public int get_fitness(ExtendedChromosome gene){
+            List<String> cmdList = new ArrayList<String>();
+            Object value = method.invoke(o,random,genStatus);
 
+            cmdList.add(this.programLocation);
+            cmdList.add(gene.genes.toString());
+            // positive value means error;
+            Integer result = new Integer(Integer.MIN_VALUE);
+
+            try{
+                // 명령어 실행
+                process = runtime.exec(array);
+
+                // shell 실행이 정상 동작했을 경우
+                successBufferReader = new BufferedReader(new InputStreamReader(process.getInputStream(), "EUC-KR"));
+
+                while ((msg = successBufferReader.readLine()) != null) {
+                    successOutput.append(msg + System.getProperty("line.separator"));
+                }
+
+                // shell 실행시 에러가 발생했을 경우
+                errorBufferReader = new BufferedReader(new InputStreamReader(process.getErrorStream(), "EUC-KR"));
+                while ((msg = errorBufferReader.readLine()) != null) {
+                    errorOutput.append(msg + System.getProperty("line.separator"));
+                }
+
+                // 프로세스의 수행이 끝날때까지 대기
+                process.waitFor();
+
+                // // shell 실행이 정상 종료되었을 경우
+                // if (process.exitValue() == 0) {
+                //     System.out.println("성공");
+                //     System.out.println(successOutput.toString());
+                //     System.out.println(errorOutput.toString());
+                // } else {
+                //     // shell 실행이 비정상 종료되었을 경우
+                //     System.out.println("비정상 종료");
+                //     System.out.println(successOutput.toString());
+                // }
+
+                // shell 실행시 에러가 발생
+                if (errorOutput.toString()=="") {
+                    // shell 실행이 비정상 종료되었을 경우
+                    // System.out.println("오류");
+                    // System.out.println(successOutput.toString());
+
+                    // positive value means that it's not bood argument
+                }else{
+                    result = new Integer(-Integer.parseInt(successOutput.toString()));
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    process.destroy();
+                    if (successBufferReader != null) successBufferReader.close();
+                    if (errorBufferReader != null) errorBufferReader.close();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+
+            return result.intValue();
+
+        }
+
+        @Override
+        public ExtendedChromosome mutate(ExtendedChromosome parent){
+            ExtendedChromosome child = ExtendedChromosome(parent.fuzz(random),0,0);
+            child.fitness = get_fitness(child);
+        }
+
+        @Override
+        public void display(ExtendedChromosome obj){
+
+        }
     }
-
-    @Override
-    public ObjChromosome mutate(ObjChromosome parent){
-        
-    }
-
-    @Override
-    public void display(ObjChromosome obj){
-
-    }
+    
 
     /** Writes a line of text to a given log file. */
     protected void appendLineToFile(File file, String line) throws GuidanceException {
@@ -1339,12 +1347,5 @@ public class GBFGuidance extends GA implements Guidance{
         }
 
     }
-
-    public class GBF_GA extends GA {
-        
-
- 
-    }
-
 
 }

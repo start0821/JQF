@@ -9,36 +9,44 @@ import java.util.List;
 import edu.unist.cse.plase.fuzz.genetic.Chromosome;
 
 
-public abstract class GA{
-    private List<Object> geneSet;
-    public class ObjChromosome extends Chromosome<Object> {}
+public abstract class GA<T>{
+    private List<T> geneSet;
+    public class ExtendedChromosome extends Chromosome<T> {
+        public ExtendedChromosome(T t, int fitness){
+            super(t,fitness);
+        }
+
+        public ExtendedChromosome(ExtendedChromosome ech){
+            super((Chromosome) ech);
+        }
+    }
 
     // virtual function.
     // you should @Override the function to use the class.
-    public ObjChromosome generate_parent(int length);
+    public ExtendedChromosome generate_parent(int length);
 
     // virtual function.
     // you should @Override the function to use the class.
-    public Integer get_fitness(ObjChromosome gene);
+    public int get_fitness(ExtendedChromosome gene);
 
     // virtual function.
     // you should @Override the function to use the class.
-    public ObjChromosome mutate(ObjChromosome parent);
+    public ExtendedChromosome mutate(ExtendedChromosome parent);
 
-    public ObjChromosome get_best(int optimalFitness){
+    public ExtendedChromosome get_best(int optimalFitness){
         return get_best(optimalFitness,null);
     }
 
-    public ObjChromosome get_best(int optimalFitness, Integer maxAge){
-        ObjChromosome parent, bestParent;
+    public ExtendedChromosome get_best(int optimalFitness, Integer maxAge){
+        ExtendedChromosome parent, bestParent;
         parent = bestParent = generate_parent();
         display(bestParent);
 
         List<Integer> historicalFitness = new ArrayList<Integer>();
-        historicalFitness.add(bestParent);
+        historicalFitness.add(bestParent.fitness);
 
         while(true){
-            ObjChromosome child = mutate(parent);
+            ExtendedChromosome child = mutate(parent);
             if(parent.fitness > child.fitness){
                 if(maxAge == null){
                     continue;
@@ -48,11 +56,11 @@ public abstract class GA{
                 if(maxAge > parent.age){
                     continue;
                 }
-                Integer index = Collections.binarySearch(historicalFitness,child.fitness);
+                int index = Collections.binarySearch(historicalFitness,child.fitness);
                 if(index < 0){
                     index = -index-1;
                 }
-                Double proportionSimilar = index / new Double(historicalFitness.length());
+                Double proportionSimilar = index / new Double(historicalFitness.size());
 
                 if(Math.random() < Math.exp(-proportionSimilar)){
                     parent = child;
@@ -63,7 +71,7 @@ public abstract class GA{
                 continue;
             }
             // if child and parent has same fitness
-            if(! child.fitness > parent.fitness){
+            if(! (child.fitness > parent.fitness)){
                 child.age = parent.age+1;
                 parent = child;
                 continue;
@@ -79,7 +87,7 @@ public abstract class GA{
         }
     }
 
-    public void display(ObjChromosome chr){
-        System.out.print(chr.getGenes().toString() + " : " + chr.fitness.toString());
+    public void display(ExtendedChromosome chr){
+        System.out.print(chr.genes.toString() + " : " + Integer.toString(chr.fitness));
     }
 }

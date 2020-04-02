@@ -10,4 +10,10 @@ public class Chromosome<T>{
         this.fitness = fitness;
         this.age=0;
     }
+
+    public Chromosome (Chromosome chr){
+        this.genes = chr.genes;
+        this.fitness = chr.fitness;
+        this.age = chr.age;
+    }
 }
