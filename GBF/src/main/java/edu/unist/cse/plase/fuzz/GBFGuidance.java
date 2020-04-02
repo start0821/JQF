@@ -73,6 +73,7 @@ import edu.berkeley.cs.jqf.fuzz.junit.quickcheck.NonTrackingGenerationStatus;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
 
 import edu.unist.cse.plase.fuzz.genetic.GA;
+import edu.unist.cse.plase.fuzz.genetic.GA.ExtendedChromosome;
 
 import static java.lang.Math.ceil;
 import static java.lang.Math.log;
@@ -399,98 +400,6 @@ public class GBFGuidance implements Guidance{
 
 
     }
-
-    public class extendedGA extends GA<LinearInput>{
-
-        @Override
-        public ExtendedChromosome generate_parent(int length){
-            
-        }
-
-        @Override
-        public int get_fitness(ExtendedChromosome gene){
-            List<String> cmdList = new ArrayList<String>();
-            Object value = method.invoke(o,random,genStatus);
-
-            cmdList.add(this.programLocation);
-            cmdList.add(gene.genes.toString());
-            // positive value means error;
-            Integer result = new Integer(Integer.MIN_VALUE);
-
-            try{
-                // 명령어 실행
-                process = runtime.exec(array);
-
-                // shell 실행이 정상 동작했을 경우
-                successBufferReader = new BufferedReader(new InputStreamReader(process.getInputStream(), "EUC-KR"));
-
-                while ((msg = successBufferReader.readLine()) != null) {
-                    successOutput.append(msg + System.getProperty("line.separator"));
-                }
-
-                // shell 실행시 에러가 발생했을 경우
-                errorBufferReader = new BufferedReader(new InputStreamReader(process.getErrorStream(), "EUC-KR"));
-                while ((msg = errorBufferReader.readLine()) != null) {
-                    errorOutput.append(msg + System.getProperty("line.separator"));
-                }
-
-                // 프로세스의 수행이 끝날때까지 대기
-                process.waitFor();
-
-                // // shell 실행이 정상 종료되었을 경우
-                // if (process.exitValue() == 0) {
-                //     System.out.println("성공");
-                //     System.out.println(successOutput.toString());
-                //     System.out.println(errorOutput.toString());
-                // } else {
-                //     // shell 실행이 비정상 종료되었을 경우
-                //     System.out.println("비정상 종료");
-                //     System.out.println(successOutput.toString());
-                // }
-
-                // shell 실행시 에러가 발생
-                if (errorOutput.toString()=="") {
-                    // shell 실행이 비정상 종료되었을 경우
-                    // System.out.println("오류");
-                    // System.out.println(successOutput.toString());
-
-                    // positive value means that it's not bood argument
-                }else{
-                    result = new Integer(-Integer.parseInt(successOutput.toString()));
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    process.destroy();
-                    if (successBufferReader != null) successBufferReader.close();
-                    if (errorBufferReader != null) errorBufferReader.close();
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
-            }
-
-            return result.intValue();
-
-        }
-
-        @Override
-        public ExtendedChromosome mutate(ExtendedChromosome parent){
-            ExtendedChromosome child = ExtendedChromosome(parent.fuzz(random),0,0);
-            child.fitness = get_fitness(child);
-        }
-
-        @Override
-        public void display(ExtendedChromosome obj){
-
-        }
-    }
-    
 
     /** Writes a line of text to a given log file. */
     protected void appendLineToFile(File file, String line) throws GuidanceException {
@@ -1346,6 +1255,143 @@ public class GBFGuidance implements Guidance{
             }
         }
 
+    }
+
+    public class extendedGA extends GA<LinearInput> {
+        StreamBackedRandom randomFile;
+        SourceOfRandomness random;
+        GenerationStatus genStatus;
+        
+        public extendedGA(){};
+
+        @Override
+        public ExtendedChromosome generate_parent(){
+            ExtendedChromosome exc = new ExtendedChromosome();
+            exc.genes = (LinearInput) createFreshInput();
+            exc.generatedInput = getGeneratedInput(exc);
+            exc.fitness = get_fitness(exc);
+            return exc;
+        }
+
+        @Override
+        public int get_fitness(ExtendedChromosome gene){
+            List<String> cmdList = new ArrayList<String>();
+
+            cmdList.add(GBFGuidance.this.programLocation);
+            cmdList.add(gene.generatedInput.toString());
+            String[] array = cmdList.toArray(new String[cmdList.size()]);
+
+            // positive value means error;
+            Integer result = new Integer(Integer.MIN_VALUE);
+            try{
+                // 명령어 실행
+                process = runtime.exec(array);
+
+                // shell 실행이 정상 동작했을 경우
+                successBufferReader = new BufferedReader(new InputStreamReader(process.getInputStream(), "EUC-KR"));
+
+                while ((msg = successBufferReader.readLine()) != null) {
+                    successOutput.append(msg + System.getProperty("line.separator"));
+                }
+
+                // shell 실행시 에러가 발생했을 경우
+                errorBufferReader = new BufferedReader(new InputStreamReader(process.getErrorStream(), "EUC-KR"));
+                while ((msg = errorBufferReader.readLine()) != null) {
+                    errorOutput.append(msg + System.getProperty("line.separator"));
+                }
+
+                // 프로세스의 수행이 끝날때까지 대기
+                process.waitFor();
+
+                // // shell 실행이 정상 종료되었을 경우
+                // if (process.exitValue() == 0) {
+                //     System.out.println("성공");
+                //     System.out.println(successOutput.toString());
+                //     System.out.println(errorOutput.toString());
+                // } else {
+                //     // shell 실행이 비정상 종료되었을 경우
+                //     System.out.println("비정상 종료");
+                //     System.out.println(successOutput.toString());
+                // }
+
+                // shell 실행시 에러가 발생
+                if (errorOutput.toString()=="") {
+                    // shell 실행이 비정상 종료되었을 경우
+                    // System.out.println("오류");
+                    // System.out.println(successOutput.toString());
+
+                    // positive value means that it's not bood argument
+                }else{
+                    result = new Integer(-Integer.parseInt(successOutput.toString()));
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    process.destroy();
+                    if (successBufferReader != null) successBufferReader.close();
+                    if (errorBufferReader != null) errorBufferReader.close();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+
+            return result.intValue();
+        }
+
+        @Override
+        public ExtendedChromosome mutate(ExtendedChromosome parent){
+            ExtendedChromosome child = GA.ExtendedChromosome((LinearInput)parent.genes.fuzz(GBFGuidance.this.random),0,0);
+            
+            child.generatedInput = getGeneratedInput(child);
+            child.fitness = get_fitness(child);
+            return child;
+        }
+
+        protected Object getGeneratedInput(ExtendedChromosome ech){
+
+            // using the LinearInput, generate the systatically correct input.
+            randomFile = new StreamBackedRandom(createParameterStream(ech.genes), Long.BYTES);
+            random = new FastSourceOfRandomness(randomFile);
+            genStatus = new NonTrackingGenerationStatus(random);
+            Object result = GBFGuidance.this.generator_method.invoke(GBFGuidance.this.generator_instance,random,genStatus);
+
+            // remove LinearInput that is not used for input generation.
+            ech.genes.gc();
+            return result;
+        }
+
+        /**
+         * Returns an InputStream that delivers parameters to the generators.
+         *
+         * @param li : LinearInput to generate in generate() function.
+         */
+        protected InputStream createParameterStream(LinearInput li) {
+            // Return an input stream that reads bytes from a linear array
+            return new InputStream() {
+                int bytesRead = 0;
+
+                @Override
+                public int read() throws IOException {
+                    assert currentInput instanceof LinearInput : "GBFGuidance should only mutate LinearInput(s)";
+
+                    // Attempt to get a value from the list, or else generate a random value
+                    int ret = li.getOrGenerateFresh(bytesRead++, GBFGuidance.this.random);
+                    // infoLog("read(%d) = %d", bytesRead, ret);
+                    return ret;
+                }
+            };
+        }
+
+        @Override
+        public void display(ExtendedChromosome obj){
+
+        }
     }
 
 }

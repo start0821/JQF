@@ -51,20 +51,6 @@ public class GBFDriver
             
             GBFGuidance guidance = new GBFGuidance(generatorClassName,null,outputDirectory,method,o,programLocation);
     
-            for(int i=0;i<10;i++){
-
-                StreamBackedRandom randomFile = new StreamBackedRandom(guidance.getInput(), Long.BYTES);
-                SourceOfRandomness random = new FastSourceOfRandomness(randomFile);
-                GenerationStatus genStatus = new NonTrackingGenerationStatus(random);
-                Object value = method.invoke(o,random,genStatus);
-                List<String> cmdList = new ArrayList<String>();
-                cmdList.add(programLocation);
-                cmdList.add(Integer.toString((int)(Math.random()*100)));
-                cmdList.add(value.toString());
-                String[] array = cmdList.toArray(new String[cmdList.size()]);
-                
-        
-            }
         
 
 

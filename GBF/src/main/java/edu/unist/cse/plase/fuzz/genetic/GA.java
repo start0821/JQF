@@ -1,4 +1,3 @@
-// TODO : porting from tmp.py
 package edu.unist.cse.plase.fuzz.genetic;
 
 import java.lang.Math;
@@ -10,10 +9,19 @@ import edu.unist.cse.plase.fuzz.genetic.Chromosome;
 
 
 public abstract class GA<T>{
-    private List<T> geneSet;
     public class ExtendedChromosome extends Chromosome<T> {
+        public Object generatedInput;
+
+        public ExtendedChromosome(){
+            super();
+        }
+        
         public ExtendedChromosome(T t, int fitness){
             super(t,fitness);
+        }
+
+        public ExtendedChromosome(T t, int fitness, int age){
+            super(t,fitness,age);
         }
 
         public ExtendedChromosome(ExtendedChromosome ech){
@@ -23,15 +31,15 @@ public abstract class GA<T>{
 
     // virtual function.
     // you should @Override the function to use the class.
-    public ExtendedChromosome generate_parent(int length);
+    abstract public ExtendedChromosome generate_parent();
 
     // virtual function.
     // you should @Override the function to use the class.
-    public int get_fitness(ExtendedChromosome gene);
+    abstract public int get_fitness(ExtendedChromosome gene);
 
     // virtual function.
     // you should @Override the function to use the class.
-    public ExtendedChromosome mutate(ExtendedChromosome parent);
+    abstract public ExtendedChromosome mutate(ExtendedChromosome parent);
 
     public ExtendedChromosome get_best(int optimalFitness){
         return get_best(optimalFitness,null);

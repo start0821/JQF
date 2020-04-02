@@ -11,7 +11,15 @@ public class Chromosome<T>{
         this.age=0;
     }
 
-    public Chromosome (Chromosome chr){
+    public Chromosome (T genes,int fitness,int age){
+        this.genes = genes;
+        this.fitness = fitness;
+        this.age=age;
+    }
+
+    public Chromosome (){}
+
+    public Chromosome (Chromosome<T> chr){
         this.genes = chr.genes;
         this.fitness = chr.fitness;
         this.age = chr.age;
